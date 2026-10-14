@@ -220,11 +220,15 @@
     for(const s of slashes)drawSword(s);
     ctx.restore();
   }
-  function loop(ts){
-    const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;
-    update(dt);render();requestAnimationFrame(loop);
+  let lastTick=performance.now();
+  function step(ts){
+    const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;lastTick=ts;
+    update(dt);render();
   }
+  function loop(ts){step(ts);requestAnimationFrame(loop);}
   requestAnimationFrame(loop);
+  // 폴백: rAF가 멈추는 환경(일부 내장 브라우저/절전)에서도 게임이 진행되도록
+  setInterval(()=>{const now=performance.now();if(now-lastTick>120)step(now);},33);
 
   function startGame(){
     score=0;timeLeft=GAME_TIME;enemies=[];parts=[];slashes=[];combo=0;spawnTimer=0;

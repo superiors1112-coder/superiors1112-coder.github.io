@@ -391,7 +391,7 @@ function animateKnight(dt,now){
 
 let last=performance.now(),lastTick=last;
 function step(ts){
-  const dt=Math.min(0.05,(ts-last)/1000||0);last=ts;lastTick=ts;const now=ts/1000;
+  const dt=Math.min(0.1,(ts-last)/1000||0);last=ts;lastTick=ts;const now=ts/1000;
   if(running){
     elapsed+=dt;
     const w=1+Math.floor(elapsed/20);if(w!==wave){wave=w;$('wave').textContent='WAVE '+wave;}
@@ -421,7 +421,7 @@ function step(ts){
 }
 function loop(ts){step(ts);requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
-setInterval(()=>{const n=performance.now();if(n-lastTick>120)step(n);},33); // rAF 폴백
+setInterval(()=>{const n=performance.now();if(n-lastTick>40)step(n);},16); // rAF 폴백(절전/내장 브라우저)
 
 // ---------- input ----------
 const raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);

@@ -152,11 +152,11 @@ const rain=new THREE.Points(rainGeo,new THREE.PointsMaterial({color:0x8fa4c8,siz
 // ---------- hero: realistic-proportion man, leather jacket ----------
 const skin=new THREE.MeshStandardMaterial({color:0xb98b6a,roughness:0.62,metalness:0});
 const jacket=new THREE.MeshStandardMaterial({color:0xcfd4dc,roughness:0.28,metalness:1,envMapIntensity:1.6}); // 은빛 판금
-const plateDark=new THREE.MeshStandardMaterial({color:0x8e949e,roughness:0.35,metalness:1,envMapIntensity:1.3});
-const mail=new THREE.MeshStandardMaterial({color:0x4a4f58,roughness:0.6,metalness:0.9});
+const plateDark=jacket; // 일체형: 전신 동일 은빛
+const mail=jacket;
 const shirt=mail;
 const denim=plateDark;
-const boot=new THREE.MeshStandardMaterial({color:0xb9bfc8,roughness:0.3,metalness:1,envMapIntensity:1.4});
+const boot=jacket;
 const hairMat=new THREE.MeshStandardMaterial({color:0x14100c,roughness:0.85});
 const gold=new THREE.MeshStandardMaterial({color:0xd8b24a,metalness:1,roughness:0.28,envMapIntensity:1.5});
 const hero=new THREE.Group();scene.add(hero);
@@ -173,10 +173,9 @@ const torso=new THREE.Group();torso.position.y=1.0;hero.add(torso);
 const pelvis=new THREE.Mesh(new THREE.CapsuleGeometry(0.17,0.1,6,12),denim);pelvis.scale.set(1.25,1,0.8);pelvis.position.y=0.05;pelvis.castShadow=true;torso.add(pelvis);
 const chest=new THREE.Mesh(new THREE.CapsuleGeometry(0.2,0.3,8,16),jacket);chest.scale.set(1.3,1,0.75);chest.position.y=0.4;chest.castShadow=true;torso.add(chest);
 
-const belt=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.025,6,20),new THREE.MeshStandardMaterial({color:0x2b1a10,roughness:0.6}));belt.rotation.x=Math.PI/2;belt.position.y=0.13;belt.scale.set(1.15,0.8,1);torso.add(belt);
+const belt=new THREE.Mesh(new THREE.TorusGeometry(0.2,0.025,6,20),jacket);belt.rotation.x=Math.PI/2;belt.position.y=0.13;belt.scale.set(1.15,0.8,1);torso.add(belt);
 const buckle=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.05,0.02),gold);buckle.position.set(0,0.13,-0.2);torso.add(buckle);
-const spine=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.42,0.03),plateDark);spine.position.set(0,0.4,0.17);torso.add(spine);
-for(const yy of [0.3,0.5]){const strap=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.035,0.02),new THREE.MeshStandardMaterial({color:0x3a2416,roughness:0.8}));strap.position.set(0,yy,0.165);torso.add(strap);}
+
 // neck + head
 const neck=cap(0.05,0.06,skin,torso,0,0.66,0);
 const head=new THREE.Group();head.position.set(0,0.82,0);torso.add(head);
@@ -200,18 +199,17 @@ buildArm(shoulderL,-1);buildArm(shoulderR,1);
 for(const g of [shoulderL,shoulderR]){const pd=new THREE.Mesh(new THREE.SphereGeometry(0.115,16,12,0,Math.PI*2,0,Math.PI*0.6),jacket);pd.position.y=0.03;pd.castShadow=true;g.add(pd);const cop=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),plateDark);cop.position.y=-0.32;g.userData.elbow.add(cop);}
 const cape=new THREE.Mesh(new THREE.PlaneGeometry(0.62,1.25,1,6),new THREE.MeshStandardMaterial({color:0x5a0f1e,roughness:0.95,side:THREE.DoubleSide}));cape.position.set(0,0.02,0.24);cape.rotation.x=0.1;cape.castShadow=true;cape.visible=false;torso.add(cape); // 망토는 등판 갑옷을 가려 비활성
 for(const g of [legL,legR]){const kn=new THREE.Mesh(new THREE.SphereGeometry(0.075,10,8),plateDark);kn.position.set(0,-0.47,0.03);g.add(kn);}
-shoulderL.userData.elbow.rotation.x=-0.5;
 // ---------- Excalibur ----------
-const sword=new THREE.Group();sword.position.y=-0.36;shoulderR.userData.elbow.add(sword);
+const sword=new THREE.Group();sword.position.y=-0.36;shoulderR.userData.elbow.add(sword);const leftGripPt=new THREE.Vector3(0,0,0.36); // 왼손이 잡는 손잡이 지점(검 로컬)
 sword.rotation.x=-Math.PI/2; // blade along the forearm axis (-y of the arm)
 const bladeMat=new THREE.MeshStandardMaterial({color:0xf2f4f8,metalness:1,roughness:0.1,envMapIntensity:2.2,emissive:0xffd060,emissiveIntensity:0.25});
-const blade=new THREE.Mesh(new THREE.BoxGeometry(0.075,0.018,1.85),bladeMat);blade.position.set(0,0,-1.05);blade.castShadow=true;sword.add(blade);
-const bladeTip=new THREE.Mesh(new THREE.ConeGeometry(0.038,0.22,4),bladeMat);bladeTip.rotation.x=-Math.PI/2;bladeTip.rotation.y=Math.PI/4;bladeTip.position.set(0,0,-2.08);sword.add(bladeTip);
+const blade=new THREE.Mesh(new THREE.BoxGeometry(0.095,0.02,2.5),bladeMat);blade.position.set(0,0,-1.4);blade.castShadow=true;sword.add(blade);
+const bladeTip=new THREE.Mesh(new THREE.ConeGeometry(0.038,0.22,4),bladeMat);bladeTip.rotation.x=-Math.PI/2;bladeTip.rotation.y=Math.PI/4;bladeTip.position.set(0,0,-2.76);sword.add(bladeTip);
 const fullerMat=new THREE.MeshStandardMaterial({color:0xfff2c0,emissive:0xffd060,emissiveIntensity:1.6});
-const fuller=new THREE.Mesh(new THREE.BoxGeometry(0.018,0.022,1.5),fullerMat);fuller.position.set(0,0,-1.0);sword.add(fuller);
-const guard=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.05,0.07),gold);guard.position.set(0,0,-0.1);sword.add(guard);
-const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.028,0.03,0.26,10),new THREE.MeshStandardMaterial({color:0x2a1608,roughness:0.8}));grip.rotation.x=Math.PI/2;grip.position.set(0,0,0.06);sword.add(grip);
-const pommel=new THREE.Mesh(new THREE.SphereGeometry(0.045,10,10),gold);pommel.position.set(0,0,0.21);sword.add(pommel);
+const fuller=new THREE.Mesh(new THREE.BoxGeometry(0.02,0.024,2.1),fullerMat);fuller.position.set(0,0,-1.35);sword.add(fuller);
+const guard=new THREE.Mesh(new THREE.BoxGeometry(0.44,0.05,0.07),gold);guard.position.set(0,0,-0.1);sword.add(guard);
+const grip=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.032,0.5,10),new THREE.MeshStandardMaterial({color:0x2a1608,roughness:0.8}));grip.rotation.x=Math.PI/2;grip.position.set(0,0,0.18);sword.add(grip);
+const pommel=new THREE.Mesh(new THREE.SphereGeometry(0.05,10,10),gold);pommel.position.set(0,0,0.45);sword.add(pommel);
 // --- flowing aura: scrolling streak texture on two crossed quads + travelling sparks ---
 function auraTexture(){
   const c=document.createElement('canvas');c.width=64;c.height=256;const g=c.getContext('2d');
@@ -225,11 +223,11 @@ const auraTex=auraTexture();
 const auraMat=new THREE.MeshBasicMaterial({map:auraTex,color:0xffffff,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
 const auraTex2=auraTexture();auraTex2.offset.y=0.5;
 const auraMat2=new THREE.MeshBasicMaterial({map:auraTex2,color:0xffc63a,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
-const auraGeo=new THREE.PlaneGeometry(0.42,1.95);
-const aura1=new THREE.Mesh(auraGeo,auraMat);aura1.rotation.x=-Math.PI/2;aura1.position.set(0,0,-1.1);sword.add(aura1);
-const aura2=new THREE.Mesh(auraGeo,auraMat2);aura2.rotation.x=-Math.PI/2;aura2.rotation.y=Math.PI/2;aura2.position.set(0,0,-1.1);sword.add(aura2);
-const aura3=new THREE.Mesh(auraGeo,auraMat2);aura3.rotation.x=-Math.PI/2;aura3.rotation.y=Math.PI/4;aura3.position.set(0,0,-1.1);sword.add(aura3);
-const aura4=new THREE.Mesh(auraGeo,auraMat);aura4.rotation.x=-Math.PI/2;aura4.rotation.y=-Math.PI/4;aura4.position.set(0,0,-1.1);sword.add(aura4);
+const auraGeo=new THREE.PlaneGeometry(0.5,2.6);
+const aura1=new THREE.Mesh(auraGeo,auraMat);aura1.rotation.x=-Math.PI/2;aura1.position.set(0,0,-1.45);sword.add(aura1);
+const aura2=new THREE.Mesh(auraGeo,auraMat2);aura2.rotation.x=-Math.PI/2;aura2.rotation.y=Math.PI/2;aura2.position.set(0,0,-1.45);sword.add(aura2);
+const aura3=new THREE.Mesh(auraGeo,auraMat2);aura3.rotation.x=-Math.PI/2;aura3.rotation.y=Math.PI/4;aura3.position.set(0,0,-1.45);sword.add(aura3);
+const aura4=new THREE.Mesh(auraGeo,auraMat);aura4.rotation.x=-Math.PI/2;aura4.rotation.y=-Math.PI/4;aura4.position.set(0,0,-1.45);sword.add(aura4);
 const sparkTex=(()=>{const c=document.createElement('canvas');c.width=c.height=32;const g=c.getContext('2d');const gr=g.createRadialGradient(16,16,0,16,16,16);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.3,'rgba(255,245,210,0.85)');gr.addColorStop(1,'rgba(255,215,120,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;})();
 const sparks=[];for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:sparkTex,color:i%2?0xffc63a:0xffffff,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));s.scale.setScalar(0.12+Math.random()*0.1);s.userData.t=Math.random();s.userData.sp=0.5+Math.random()*0.5;s.userData.off=(Math.random()-0.5)*0.06;sword.add(s);sparks.push(s);}
 // arm pose system (direction quaternions)
@@ -237,25 +235,25 @@ const DOWN=new THREE.Vector3(0,-1,0);
 const qFrom=v=>new THREE.Quaternion().setFromUnitVectors(DOWN,v.clone().normalize());
 const POSE={
   idle:qFrom(new THREE.Vector3(0.3,-1,-0.1)),
-  guard:qFrom(new THREE.Vector3(0.45,-0.9,-0.35)),
-  thrustBack:qFrom(new THREE.Vector3(0.5,-0.3,0.75)),
+  guard:qFrom(new THREE.Vector3(0.35,-0.85,-0.45)),
+  thrustBack:qFrom(new THREE.Vector3(0.55,-0.15,0.95)),
   thrustOut:qFrom(new THREE.Vector3(0.0,0.08,-1)),
-  slashStart:qFrom(new THREE.Vector3(0.9,1.0,-0.35)),
-  slashMid:qFrom(new THREE.Vector3(0.1,0.5,-1)),
-  slashEnd:qFrom(new THREE.Vector3(-1.0,-0.55,-0.45))
+  slashStart:qFrom(new THREE.Vector3(0.9,1.15,0.35)),
+  slashMid:qFrom(new THREE.Vector3(0.15,0.7,-1)),
+  slashEnd:qFrom(new THREE.Vector3(-1.1,-0.75,-0.45))
 };
-const SLASH_V0=new THREE.Vector3(0.9,1.0,-0.35).normalize(),SLASH_V1=new THREE.Vector3(-1.0,-0.55,-0.45).normalize();
+const SLASH_V0=new THREE.Vector3(0.9,1.15,0.35).normalize(),SLASH_V1=new THREE.Vector3(-1.1,-0.75,-0.45).normalize();
 shoulderR.quaternion.copy(POSE.idle);shoulderL.quaternion.copy(qFrom(new THREE.Vector3(-0.25,-1,-0.15)));
 const qTmp=new THREE.Quaternion();
 // slash trail
 const trailMat=new THREE.MeshBasicMaterial({color:0xffe9a8,transparent:true,opacity:0,side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false});
 const slashAngle=Math.acos(SLASH_V0.dot(SLASH_V1));
-const trail=new THREE.Mesh(new THREE.RingGeometry(1.0,2.6,40,1,0,slashAngle),trailMat);trail.visible=false;hero.add(trail);
-function setTrailSweep(k){const g=trail.geometry;const end=slashAngle*k,start=Math.max(0,end-slashAngle*0.5);trail.geometry=new THREE.RingGeometry(1.0,2.6,40,1,start,Math.max(0.02,end-start));g.dispose();}
+const trail=new THREE.Mesh(new THREE.RingGeometry(1.0,3.3,40,1,0,slashAngle),trailMat);trail.visible=false;hero.add(trail);
+function setTrailSweep(k){const g=trail.geometry;const end=slashAngle*k,start=Math.max(0,end-slashAngle*0.5);trail.geometry=new THREE.RingGeometry(1.0,3.3,40,1,start,Math.max(0.02,end-start));g.dispose();}
 { const n=new THREE.Vector3().crossVectors(SLASH_V0,SLASH_V1).normalize(); const y=new THREE.Vector3().crossVectors(n,SLASH_V0).normalize();
   const m=new THREE.Matrix4().makeBasis(SLASH_V0,y,n); trail.quaternion.setFromRotationMatrix(m); trail.position.set(0.27,1.6,0); }
 const thrustMat=new THREE.MeshBasicMaterial({color:0xfff1c8,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false});
-const thrustFx=new THREE.Mesh(new THREE.ConeGeometry(0.25,2.6,10,1,true),thrustMat);thrustFx.rotation.x=-Math.PI/2;thrustFx.visible=false;hero.add(thrustFx);
+const thrustFx=new THREE.Mesh(new THREE.ConeGeometry(0.3,3.4,10,1,true),thrustMat);thrustFx.rotation.x=-Math.PI/2;thrustFx.visible=false;hero.add(thrustFx);
 
 // ---------- enemies (one at a time) ----------
 const TYPES={
@@ -330,7 +328,8 @@ function spawn(){
   scene.add(e);foe=e;setFoeUI();
 }
 function killFoe(e,pts){const T=TYPES[e.userData.type];burst(e.position,T.color,T.hp>1?26:14,T.hp>1);floatText(e.position,'+'+pts);scene.remove(e);foe=null;spawnDelay=0.9;setFoeUI();}
-function doAttack(kind){if(!running||attack)return;attack={kind,t:0,dur:kind==='thrust'?0.3:0.45,hitDone:false};if(kind==='thrust'){thrustFx.visible=true;thrustFx.position.set(0.25,1.35,-2.0);thrustMat.opacity=0;}else{trail.visible=true;trailMat.opacity=0;}}
+let queued=null;
+function doAttack(kind){if(!running)return;if(attack){if(attack.t/attack.dur>0.45)queued=kind;return;}attack={kind,t:0,dur:kind==='thrust'?0.34:0.55,hitDone:false};if(kind==='thrust'){thrustFx.visible=true;thrustFx.position.set(0.2,1.35,-2.6);thrustMat.opacity=0;}else{trail.visible=true;trailMat.opacity=0;}}
 function resolveHits(kind){
   if(!foe)return;
   tmpV.copy(foe.position);tmpV.y=0;const d=tmpV.length();const dir=tmpV.clone().normalize();
@@ -355,6 +354,14 @@ function takeDamage(){hp--;setHP();shake=0.5;$('flash').style.opacity=1;setTimeo
 
 // ---------- animation ----------
 function easeOut(t){return 1-Math.pow(1-t,3);}
+const _gw=new THREE.Vector3(),_sl=new THREE.Vector3(),_dir=new THREE.Vector3();
+function twoHand(){ // 왼손이 손잡이 아래쪽을 잡도록 왼팔을 손잡이 지점으로 향하게 함
+  torso.updateWorldMatrix(true,false);sword.updateWorldMatrix(true,false);
+  _gw.copy(leftGripPt);sword.localToWorld(_gw);torso.worldToLocal(_gw);
+  _sl.copy(shoulderL.position);_dir.copy(_gw).sub(_sl);const d=_dir.length();_dir.normalize();
+  shoulderL.quaternion.slerp(qFrom(_dir),0.6);
+  const bend=THREE.MathUtils.clamp((0.66-d)*4,0,1.4);shoulderL.userData.elbow.rotation.x=bend;
+}
 function animateHero(dt,now){
   // auto face the foe (lock-on), else forward
   facingTarget=foe?Math.atan2(-foe.position.x,-foe.position.z):0;
@@ -365,14 +372,14 @@ function animateHero(dt,now){
   head.rotation.y=Math.sin(now*0.7)*0.08;head.rotation.x=-0.05;
   { const pa=cape.geometry.attributes.position;for(let i=0;i<pa.count;i++){const y=pa.getY(i);const f=(0.625-y)/1.25;pa.setZ(i,Math.sin(now*2.2+y*3)*0.05*f+(attack?0.12*f:0));}pa.needsUpdate=true;cape.rotation.x=0.1+(attack?0.25:0); }
   legL.rotation.x=0.06;legR.rotation.x=-0.1;legR.rotation.z=-0.05;legL.rotation.z=0.05;
-  shoulderL.userData.elbow.rotation.x=-0.55+Math.sin(now*1.6)*0.03;
   // aura flow
   // 흰색·황금색 교차 아우라
   auraTex.offset.y-=dt*1.2;auraTex2.offset.y-=dt*1.5;
   const ph=Math.sin(now*4);auraMat.opacity=0.55+ph*0.3+(attack?0.3:0);auraMat2.opacity=0.55-ph*0.3+(attack?0.3:0);
   const gw=(ph+1)/2;bladeMat.emissive.setRGB(1,0.82+0.18*gw,0.38+0.62*gw);fullerMat.emissive.copy(bladeMat.emissive);bladeLight.color.copy(bladeMat.emissive);
-  for(const s of sparks){s.userData.t=(s.userData.t+dt*s.userData.sp*(attack?2.2:1))%1;const z=0.05-s.userData.t*2.15;s.position.set(Math.sin(s.userData.t*20+now)*0.03+s.userData.off,Math.cos(s.userData.t*17)*0.03,z);s.material.opacity=Math.sin(s.userData.t*Math.PI);}
+  for(const s of sparks){s.userData.t=(s.userData.t+dt*s.userData.sp*(attack?2.2:1))%1;const z=0.1-s.userData.t*2.85;s.position.set(Math.sin(s.userData.t*20+now)*0.03+s.userData.off,Math.cos(s.userData.t*17)*0.03,z);s.material.opacity=Math.sin(s.userData.t*Math.PI);}
   blade.getWorldPosition(tmpV);bladeLight.position.copy(tmpV);
+  twoHand();
   if(!attack){
     const target=foe?POSE.guard:POSE.idle;
     shoulderR.quaternion.slerp(target,Math.min(1,dt*5));
@@ -389,20 +396,21 @@ function animateHero(dt,now){
     if(p<0.3){const k=easeOut(p/0.3);qTmp.copy(POSE.guard).slerp(POSE.thrustBack,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=1.75-0.4*k;}
     else if(p<0.58){const k=easeOut((p-0.3)/0.28);qTmp.copy(POSE.thrustBack).slerp(POSE.thrustOut,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=1.35-1.3*k;lunge=k;}
     else{const k=(p-0.58)/0.42;qTmp.copy(POSE.thrustOut).slerp(POSE.guard,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=0.05+1.7*k;lunge=1-k;}
-    torso.rotation.y=0.35-0.75*lunge;torso.rotation.x=0.04+0.18*lunge;
-    hero.position.set(-0.55*lunge*Math.sin(facing),0,-0.55*lunge*Math.cos(facing));
-    legR.rotation.x=-0.1-0.6*lunge;legL.rotation.x=0.06+0.35*lunge;
+    torso.rotation.y=0.45-1.0*lunge;torso.rotation.x=0.04+0.25*lunge;
+    hero.position.set(-0.8*lunge*Math.sin(facing),0,-0.8*lunge*Math.cos(facing));
+    legR.rotation.x=-0.1-0.9*lunge;legL.rotation.x=0.06+0.5*lunge;
     thrustMat.opacity=p>0.3&&p<0.7?0.5*(1-(p-0.3)/0.4):0;thrustFx.scale.set(1,1+lunge,1);
     if(!attack.hitDone&&p>=0.42){attack.hitDone=true;resolveHits('thrust');}
   }else{
-    if(p<0.22){const k=easeOut(p/0.22);qTmp.copy(POSE.guard).slerp(POSE.slashStart,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=1.75-0.8*k;torso.rotation.y=0.35+0.3*k;torso.rotation.z=0.1*k;}
-    else if(p<0.6){const k=easeOut((p-0.22)/0.38);if(k<0.5){qTmp.copy(POSE.slashStart).slerp(POSE.slashMid,k*2);}else{qTmp.copy(POSE.slashMid).slerp(POSE.slashEnd,(k-0.5)*2);}
-      shoulderR.quaternion.copy(qTmp);el.rotation.x=0.95-0.7*k;torso.rotation.y=0.65-1.3*k;torso.rotation.z=0.1-0.3*k;torso.rotation.x=0.04+0.12*k;}
-    else{const k=(p-0.6)/0.4;qTmp.copy(POSE.slashEnd).slerp(POSE.guard,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=0.25+1.5*k;torso.rotation.y=-0.65+1.0*k;torso.rotation.z=-0.2*(1-k);torso.rotation.x=0.16-0.12*k;}
-    { const k=THREE.MathUtils.clamp((p-0.22)/0.38,0,1);setTrailSweep(easeOut(k));trailMat.opacity=p>0.24&&p<0.8?0.5*(1-(p-0.24)/0.56):0; }
-    if(!attack.hitDone&&p>=0.4){attack.hitDone=true;resolveHits('slash');}
+    if(p<0.25){const k=easeOut(p/0.25);qTmp.copy(POSE.guard).slerp(POSE.slashStart,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=1.75-1.1*k;torso.rotation.y=0.35+0.55*k;torso.rotation.z=0.15*k;torso.rotation.x=0.04-0.12*k;hero.position.set(0,0,0);}
+    else if(p<0.62){const k=easeOut((p-0.25)/0.37);if(k<0.5){qTmp.copy(POSE.slashStart).slerp(POSE.slashMid,k*2);}else{qTmp.copy(POSE.slashMid).slerp(POSE.slashEnd,(k-0.5)*2);}
+      shoulderR.quaternion.copy(qTmp);el.rotation.x=0.65-0.5*k;torso.rotation.y=0.9-1.9*k;torso.rotation.z=0.15-0.45*k;torso.rotation.x=-0.08+0.3*k;
+      hero.position.set(-0.45*k*Math.sin(facing),0,-0.45*k*Math.cos(facing));legL.rotation.x=0.06+0.6*k;legR.rotation.x=-0.1-0.4*k;}
+    else{const k=(p-0.62)/0.38;qTmp.copy(POSE.slashEnd).slerp(POSE.guard,k);shoulderR.quaternion.copy(qTmp);el.rotation.x=0.15+1.6*k;torso.rotation.y=-1.0+1.35*k;torso.rotation.z=-0.3*(1-k);torso.rotation.x=0.22-0.18*k;hero.position.set(-0.45*(1-k)*Math.sin(facing),0,-0.45*(1-k)*Math.cos(facing));}
+    { const k=THREE.MathUtils.clamp((p-0.25)/0.37,0,1);setTrailSweep(easeOut(k));trailMat.opacity=p>0.27&&p<0.85?0.55*(1-(p-0.27)/0.58):0; }
+    if(!attack.hitDone&&p>=0.42){attack.hitDone=true;resolveHits('slash');}
   }
-  if(p>=1){attack=null;trail.visible=false;thrustFx.visible=false;hero.position.set(0,0,0);}
+  if(p>=1){attack=null;trail.visible=false;thrustFx.visible=false;hero.position.set(0,0,0);if(queued){const q=queued;queued=null;doAttack(q);}}
 }
 function animateFoe(e,dt,now){
   const T=TYPES[e.userData.type],rig=e.userData.rig,u=e.userData;
@@ -495,7 +503,7 @@ window.addEventListener('keydown',ev=>{if(ev.repeat)return;const k=ev.key.toLowe
 // ---------- start / end ----------
 function startGame(){
   if(foe)scene.remove(foe);foe=null;
-  score=0;kills=0;hp=MAX_HP;round=1;combo=0;comboTimer=0;spawnDelay=0.6;elapsed=0;attack=null;
+  score=0;kills=0;hp=MAX_HP;round=1;combo=0;comboTimer=0;spawnDelay=0.6;elapsed=0;attack=null;queued=null;
   $('score').textContent=0;$('kills').textContent=0;$('wave').textContent='ROUND 1';setHP();setFoeUI();
   $('start').classList.add('hidden');$('end').classList.add('hidden');running=true;
 }

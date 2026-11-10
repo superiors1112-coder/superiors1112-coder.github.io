@@ -17,6 +17,11 @@
   #stage{position:relative;width:100%;background:#f4c3b3}
   #cv{display:block;width:100%;cursor:pointer;touch-action:manipulation;outline:none}
   #hud{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:12px;background:rgba(255,255,255,.86);font-size:12px;font-weight:500;padding:4px 11px;border-radius:999px}
+  #say{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);width:min(92%,640px);margin:0}
+  #msg{width:100%;height:48px;margin:0;padding:0 22px;border:2px solid #f3a9c0;border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(120,60,80,.18);font:inherit;font-size:16px;color:var(--ink)}
+  #msg:focus{outline:none;border-color:#ee7fa3}
+  @media (prefers-reduced-motion:no-preference){ #say:not([hidden]){animation:sayin .18s ease-out} }
+  @keyframes sayin{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
   #bar{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line)}
   .pose{flex:1 1 auto;max-width:180px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
   .pose[aria-pressed="true"]{background:var(--soft);border-color:var(--accent);color:var(--accent);font-weight:700}
@@ -53,12 +58,14 @@
 </style>
 </head>
 <body>
-<div id="stage"><canvas id="cv" tabindex="0" aria-label="무릉도원. 눈사람 모습의 접속자들이 쉬고 있는 공간"></canvas><div id="hud" hidden></div></div>
+<div id="stage"><canvas id="cv" tabindex="0" aria-label="무릉도원. 눈사람 모습의 접속자들이 쉬고 있는 공간"></canvas><div id="hud" hidden></div>
+  <form id="say" hidden autocomplete="off"><input type="text" id="msg" maxlength="40" placeholder="하고 싶은 말을 쓰고 Enter (ESC 닫기)" aria-label="말풍선에 띄울 말" enterkeyhint="send"></form></div>
 <div id="bar" hidden role="group" aria-label="자세">
   <button class="pose" data-pose="prone"><kbd>A</kbd>엎드리기</button>
   <button class="pose" data-pose="bow"><kbd>S</kbd>인사</button>
   <button class="pose" data-pose="meditate"><kbd>D</kbd>명상</button>
   <button class="pose" data-pose="stand"><kbd>F</kbd>일어서기</button>
+  <button class="pose" id="talk"><kbd>Enter</kbd>말하기</button>
   <button class="pose out" id="lout"><kbd>ESC</kbd>로그아웃</button>
 </div>
 <div id="gate">
@@ -77,7 +84,7 @@
     </div>
     <fieldset><legend>캐릭터</legend><div class="chars" id="chars"></div></fieldset>
     <button class="btn" id="go" type="submit">입장하기</button>
-    <p class="keys">A 엎드리기 · S 인사 · D 명상 · F 일어서기 · ESC 로그아웃<br>화면을 누르거나 방향키로 이동합니다.</p>
+    <p class="keys">A 엎드리기 · S 인사 · D 명상 · F 일어서기 · Enter 말하기 · ESC 로그아웃<br>화면을 누르거나 방향키로 이동합니다.</p>
   </form>
 </div>
 
@@ -147,6 +154,7 @@ function connect(){
     if(Object.values(peers).some(p=>p.name.toLowerCase()===me.name.toLowerCase())){ leave(); busy(false); return showErr('이미 접속 중인 아이디입니다. 다른 아이디를 입력해주세요.'); }
     try{ await ch.track(payload()); busy(false); enter(); }catch(e){ leave(); busy(false); showErr('접속하지 못했습니다. 잠시 후 다시 시도해주세요.'); } };
   ch.on('presence',{event:'sync'},()=>{ readPeers(); if(!inside) tryJoin(); });
+  ch.on('broadcast',{event:'say'},m=>{ const d=m&&m.payload; if(d&&typeof d.k==='string'&&typeof d.t==='string'&&peers[d.k]) bubbles[d.k]={text:d.t.slice(0,40),t0:performance.now()}; });
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){ if(!inside) joinTimer=setTimeout(tryJoin,900); else send(true); }
     else if((st==='CHANNEL_ERROR'||st==='TIMED_OUT')&&!inside){ leave(); busy(false); showErr('지금은 접속자가 많거나 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'); }
@@ -156,7 +164,7 @@ function leave(){ clearTimeout(joinTimer); if(ch){ const c=ch; ch=null; try{ c.u
 let lastSend=0, sendT=0;
 function send(now){ if(!ch||!inside) return; clearTimeout(sendT); const wait=now?0:Math.max(0,350-(Date.now()-lastSend));
   sendT=setTimeout(()=>{ lastSend=Date.now(); if(ch) ch.track(payload()).catch(()=>{}); },wait); }
-function logout(){ if(!inside) return; inside=false; leave(); anim={}; bar.hidden=true; hud.hidden=true; gate.hidden=false; count=-1; busy(false); showErr(''); fit(true); $('nm').focus(); }
+function logout(){ if(!inside) return; closeSay(); bubbles={}; inside=false; leave(); anim={}; bar.hidden=true; hud.hidden=true; gate.hidden=false; count=-1; busy(false); showErr(''); fit(true); $('nm').focus(); }
 window.addEventListener('pagehide',()=>{ if(ch){ try{ ch.untrack(); }catch(e){} } });
 
 // ---------- 조작 ----------
@@ -166,8 +174,35 @@ function walkTo(x,y){ me.tx=clamp(x,.04,.96); me.ty=clamp(y,0,1); if(me.pose!=='
 document.querySelectorAll('.pose[data-pose]').forEach(b=>b.onclick=()=>{ setPose(b.dataset.pose); cv.focus({preventScroll:true}); });
 $('lout').onclick=logout;
 cv.addEventListener('pointerdown',e=>{ if(!inside) return; const r=cv.getBoundingClientRect(); walkTo((e.clientX-r.left)/r.width,((e.clientY-r.top)/r.height-G0)/(G1-G0)); cv.focus({preventScroll:true}); });
+// ---------- 말풍선 ----------
+let bubbles={}, lastSay=0;
+const sayBox=$('say'), msg=$('msg');
+function openSay(){ if(!inside) return; sayBox.hidden=false; msg.value=''; msg.focus(); }
+function closeSay(){ if(sayBox.hidden) return; sayBox.hidden=true; msg.blur(); if(inside) cv.focus({preventScroll:true}); }
+function say(){ const t=msg.value.replace(/\s+/g,' ').trim().slice(0,40); closeSay(); if(!t) return; const n=Date.now(); if(n-lastSay<800) return; lastSay=n;
+  bubbles[myKey]={text:t,t0:performance.now()}; if(ch) ch.send({type:'broadcast',event:'say',payload:{k:myKey,t}}).catch(()=>{}); }
+sayBox.addEventListener('submit',e=>e.preventDefault());
+msg.addEventListener('keydown',e=>{ e.stopPropagation(); if(e.isComposing||e.keyCode===229) return;
+  if(e.key==='Enter'){ e.preventDefault(); say(); } else if(e.key==='Escape'){ e.preventDefault(); closeSay(); } });
+msg.addEventListener('blur',()=>{ if(!msg.value.trim()) setTimeout(()=>{ if(document.activeElement!==msg) sayBox.hidden=true; },150); });
+$('talk').onclick=()=>{ if(sayBox.hidden) openSay(); else say(); };
+function wrap(text,max){ const out=[]; let line=''; for(const c of text){ if(g.measureText(line+c).width>max&&line){ out.push(line); line=c.trimStart(); } else line+=c; } if(line) out.push(line); return out.slice(0,3); }
+function bubble(x,y,sc,b,now){
+  const D=5.5, age=(now-b.t0)/1000; if(age>D) return false;
+  const q=Math.min(1,age/.28), k=reduce?1:1+2.7*Math.pow(q-1,3)+1.7*Math.pow(q-1,2), al=age>D-.5?(D-age)/.5:1, s=Math.max(.9,Math.min(1.25,sc));
+  g.save(); g.translate(x,y+(reduce?0:Math.sin(now/420+x)*1.5)); g.scale(k*s,k*s); g.globalAlpha=Math.max(0,al);
+  g.font='500 13px "Noto Sans KR",sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  const lines=b.lines||(b.lines=wrap(b.text,150)), w=Math.max(34,Math.max(...lines.map(l=>g.measureText(l).width))+24), h=lines.length*18+14, top=-(h+9);
+  g.fillStyle='#ffffff'; g.strokeStyle='#f3a9c0'; g.lineWidth=1.6; g.lineJoin='round';
+  g.shadowColor='rgba(120,60,80,.18)'; g.shadowBlur=8; g.shadowOffsetY=3;
+  g.beginPath(); if(g.roundRect) g.roundRect(-w/2,top,w,h,13); else g.rect(-w/2,top,w,h); g.fill(); g.shadowColor='transparent'; g.stroke();
+  g.beginPath(); g.moveTo(-6,-9.6); g.lineTo(0,0); g.lineTo(6,-9.6); g.fill(); g.stroke(); g.fillRect(-5.2,-11.4,10.4,2.6);
+  g.fillStyle='#3b2a35'; lines.forEach((l,i)=>g.fillText(l,0,top+7+9+i*18));
+  g.restore(); return true;
+}
 document.addEventListener('keydown',e=>{
   if(!inside||e.ctrlKey||e.metaKey||e.altKey) return;
+  if(e.code==='Enter'||e.code==='NumpadEnter'){ e.preventDefault(); openSay(); return; }
   if(e.code==='Escape'){ e.preventDefault(); logout(); return; }
   if(POSES[e.code]){ e.preventDefault(); setPose(POSES[e.code]); return; }
   const mv={ArrowLeft:[-.06,0],ArrowRight:[.06,0],ArrowUp:[0,-.12],ArrowDown:[0,.12]}[e.code];
@@ -286,6 +321,9 @@ function frame(now){
     const T=POSE_T[a.pose]; for(let i=0;i<6;i++) s.p[i]+=(T[i]-s.p[i])*Math.min(1,dt*9); a.s=s; }
   list.sort((a,b)=>a.s.y-b.s.y);
   for(const a of list) avatar(g,a.c,a.s.x*w,(G0+(G1-G0)*a.s.y)*h,S.u*(.78+.5*a.s.y),a.s,a.pose,a.hue,a.label,!!a.isMe,t);
+  for(const a of list){ const b=bubbles[a.id]; if(!b) continue; const sc=S.u*(.78+.5*a.s.y), p=a.s.p, hat=(a.c==='bunny'&&a.pose!=='prone')?18:(a.c==='chick'||a.c==='bear')?5:0;
+    const tipY=Math.min(p[5]-12,p[1]-p[3])-hat-27; if(!bubble(a.s.x*w+(p[0]+p[4])/2*a.s.face*sc,(G0+(G1-G0)*a.s.y)*h+tipY*sc,sc,b,now)) delete bubbles[a.id]; }
+  for(const k in bubbles) if(!seen[k]) delete bubbles[k];
   if(count!==-2&&list.length!==count){ count=list.length; hud.textContent=`무릉도원 · 지금 ${count}명`; }
 }
 // 숨겨진 탭/패널에서도 멈추지 않도록 rAF + 타이머 병행

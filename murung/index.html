@@ -48,7 +48,9 @@
   @media (max-width:620px){ #chat{top:auto;height:58%;width:100%;border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0} #chat header{padding-top:12px} }
   #toast{position:fixed;z-index:8;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-width:90%;padding:8px 16px;border-radius:999px;background:rgba(23,50,47,.93);color:#fff;font-size:13px}
   #ad{display:none}
-  @media (min-width:1100px) and (min-height:680px){
+  .adslot{display:inline-block;width:160px;height:300px}
+  @media (min-height:680px){ .adslot{height:600px} }
+  @media (min-width:1100px){
     body{padding-left:184px}
     #gate{left:184px}
     #ad{display:flex;flex-direction:column;align-items:center;gap:6px;position:fixed;z-index:5;left:0;top:0;bottom:0;width:184px;padding:12px 0;background:#fff;border-right:1px solid var(--line)}
@@ -92,7 +94,7 @@
 <body>
 <aside id="ad" aria-label="광고"><span>광고</span>
   <!-- murung-left -->
-  <ins class="adsbygoogle" style="display:inline-block;width:160px;height:600px" data-ad-client="ca-pub-4262504291252219" data-ad-slot="6398544811"></ins>
+  <ins class="adsbygoogle adslot" data-ad-client="ca-pub-4262504291252219" data-ad-slot="6398544811"></ins>
 </aside>
 <div id="stage"><canvas id="cv" tabindex="0" aria-label="무릉도원. 눈사람 모습의 접속자들이 쉬고 있는 공간"></canvas><div id="hud" hidden></div>
   <form id="say" hidden autocomplete="off"><input type="text" id="msg" maxlength="40" placeholder="하고 싶은 말을 쓰고 Enter (ESC 닫기)" aria-label="말풍선에 띄울 말" enterkeyhint="send"></form>
@@ -439,7 +441,7 @@ function frame(now){
 let ticked=0; const tick=()=>{ const n=performance.now(); if(n-ticked<12) return; ticked=n; frame(n); };
 (function loop(){ tick(); requestAnimationFrame(loop); })(); setInterval(tick,50);
 fit(true);
-if(matchMedia('(min-width:1100px) and (min-height:680px)').matches){ try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(e){} }
+if(matchMedia('(min-width:1100px)').matches){ try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(e){} }
 })();
 </script>
 </body>
